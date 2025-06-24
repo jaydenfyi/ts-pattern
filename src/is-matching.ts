@@ -8,7 +8,7 @@ import { WithDefault } from './types/helpers';
  * in object patterns. See "should allow targetting unknown properties"
  * unit test in `is-matching.test.ts`.
  */
-type PatternConstraint<T> = T extends readonly any[]
+export type PatternConstraint<T> = T extends readonly any[]
   ? P.Pattern<T>
   : T extends object
   ? P.Pattern<T> & UnknownProperties

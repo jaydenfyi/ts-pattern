@@ -1,8 +1,11 @@
 import { Pattern } from './types/Pattern';
 import { Match } from './types/Match';
+import { WithDefault } from './types/helpers';
+import * as P from './patterns';
 import * as symbols from './internals/symbols';
 import { matchPattern } from './internals/helpers';
 import { NonExhaustiveError } from './errors';
+import type { PatternConstraint } from './is-matching';
 
 type MatchState<output> =
   | { matched: true; value: output }
@@ -29,10 +32,19 @@ const unmatched: MatchState<never> = {
  *    .exhaustive();
  *
  */
+export function match<const T, const P extends PatternConstraint<T>>(
+  value: T,
+  pattern: P
+): value is T & WithDefault<P.narrow<T, P>, P.infer<P>>;
 export function match<const input, output = symbols.unset>(
   value: input
-): Match<input, output> {
-  return new MatchExpression(value, unmatched) as any;
+): Match<input, output>;
+export function match(value: unknown, pattern?: Pattern<unknown>): unknown {
+  if (arguments.length === 2) {
+    return matchPattern(pattern as Pattern<unknown>, value, () => {});
+  }
+
+  return new MatchExpression(value as any, unmatched) as any;
 }
 
 /**

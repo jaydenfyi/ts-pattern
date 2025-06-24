@@ -422,10 +422,20 @@ match(value);
 
 Create a `Match` object on which you can later call `.with`, `.when`, `.otherwise` and `.run`.
 
+```ts
+if (match(value, pattern)) {
+  // value has been narrowed
+}
+```
+
+When called with two arguments, `match` behaves just like [`isMatching`](#ismatching)
+and acts as a type guard that narrows the type of `value` when the pattern matches.
+
 #### Signature
 
 ```ts
 function match<TInput, TOutput>(input: TInput): Match<TInput, TOutput>;
+function match<I, P extends Pattern<I>>(value: I, pattern: P): value is MatchedValue<I, InvertPattern<P, I>>;
 ```
 
 #### Arguments

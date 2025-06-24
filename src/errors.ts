@@ -13,3 +13,11 @@ export class NonExhaustiveError extends Error {
     super(`Pattern matching error: no pattern matches value ${displayedValue}`);
   }
 }
+
+export interface PatternMismatch {
+  /** path to the failing property (e.g. ["user","address","street"]) */
+  path: (string | number | symbol)[];
+  expected: unknown;
+  actual: unknown;
+  type: 'missing-property' | 'invalid-value';
+}

@@ -32,7 +32,9 @@ const isOptionalPattern = (
 export const matchPattern = (
   pattern: any,
   value: any,
-  select: (key: string, value: unknown) => void
+  select: (key: string, value: unknown) => void,
+  onMismatch?: (error: import('../errors').PatternMismatch) => void,
+  path: (string | number | symbol)[] = []
 ): boolean => {
   if (isMatcher(pattern)) {
     const matcher = pattern[symbols.matcher]();
@@ -40,15 +42,43 @@ export const matchPattern = (
     if (matched && selections) {
       Object.keys(selections).forEach((key) => select(key, selections[key]));
     }
+    if (!matched && onMismatch) {
+      onMismatch({
+        path,
+        expected: pattern,
+        actual: value,
+        type: 'invalid-value',
+      });
+    }
     return matched;
   }
 
   if (isObject(pattern)) {
-    if (!isObject(value)) return false;
+    if (!isObject(value)) {
+      if (onMismatch) {
+        onMismatch({
+          path,
+          expected: pattern,
+          actual: value,
+          type: 'invalid-value',
+        });
+      }
+      return false;
+    }
 
     // Tuple pattern
     if (Array.isArray(pattern)) {
-      if (!Array.isArray(value)) return false;
+      if (!Array.isArray(value)) {
+        if (onMismatch) {
+          onMismatch({
+            path,
+            expected: pattern,
+            actual: value,
+            type: 'invalid-value',
+          });
+        }
+        return false;
+      }
       let startPatterns = [];
       let endPatterns = [];
       let variadicPatterns: AnyMatcher[] = [];
@@ -72,6 +102,14 @@ export const matchPattern = (
         }
 
         if (value.length < startPatterns.length + endPatterns.length) {
+          if (onMismatch) {
+            onMismatch({
+              path,
+              expected: pattern,
+              actual: value,
+              type: 'invalid-value',
+            });
+          }
           return false;
         }
 
@@ -85,35 +123,87 @@ export const matchPattern = (
 
         return (
           startPatterns.every((subPattern, i) =>
-            matchPattern(subPattern, startValues[i], select)
+            matchPattern(subPattern, startValues[i], select, onMismatch, [
+              ...path,
+              i,
+            ])
           ) &&
           endPatterns.every((subPattern, i) =>
-            matchPattern(subPattern, endValues[i], select)
+            matchPattern(
+              subPattern,
+              endValues[i],
+              select,
+              onMismatch,
+              [...path, value.length - endPatterns.length + i]
+            )
           ) &&
           (variadicPatterns.length === 0
             ? true
-            : matchPattern(variadicPatterns[0], middleValues, select))
+            : matchPattern(
+                variadicPatterns[0],
+                middleValues,
+                select,
+                onMismatch,
+                [...path, startPatterns.length]
+              ))
         );
       }
 
-      return pattern.length === value.length
-        ? pattern.every((subPattern, i) =>
-            matchPattern(subPattern, value[i], select)
-          )
-        : false;
+      if (pattern.length !== value.length) {
+        if (onMismatch) {
+          onMismatch({
+            path,
+            expected: pattern,
+            actual: value,
+            type: 'invalid-value',
+          });
+        }
+        return false;
+      }
+
+      return pattern.every((subPattern, i) =>
+        matchPattern(subPattern, value[i], select, onMismatch, [...path, i])
+      );
     }
 
     return Reflect.ownKeys(pattern).every((k): boolean => {
       const subPattern = pattern[k];
 
-      return (
-        (k in value || isOptionalPattern(subPattern)) &&
-        matchPattern(subPattern, value[k], select)
+      if (!(k in value)) {
+        if (!isOptionalPattern(subPattern)) {
+          if (onMismatch) {
+            onMismatch({
+              path: [...path, k],
+              expected: subPattern,
+              actual: undefined,
+              type: 'missing-property',
+            });
+          }
+          return false;
+        }
+        return true;
+      }
+
+      return matchPattern(
+        subPattern,
+        (value as any)[k],
+        select,
+        onMismatch,
+        [...path, k]
       );
     });
   }
 
-  return Object.is(value, pattern);
+  const matched = Object.is(value, pattern);
+  if (!matched && onMismatch) {
+    onMismatch({
+      path,
+      expected: pattern,
+      actual: value,
+      type: 'invalid-value',
+    });
+  }
+  return matched;
 };
 
 // @internal

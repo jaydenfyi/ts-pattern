@@ -102,6 +102,7 @@ Type-Level TypeScript takes you on a deep dive into the most advanced features o
   - [`.exhaustive`](#exhaustive)
   - [`.otherwise`](#otherwise)
   - [`isMatching`](#ismatching)
+  - [`createSafeParser`](#createsafeparser)
   - [Patterns](#patterns)
     - [Literals](#literals)
     - [Wildcards](#wildcards)
@@ -701,6 +702,33 @@ export function isMatching<p extends Pattern<any>>(
   - **Optional**
   - if a value is given as second argument, `isMatching` will return a boolean telling us whether the pattern matches the value or not.
   - if we only give the pattern to the function, `isMatching` will return another **type guard function** taking a value and returning a boolean which tells us whether the pattern matches the value or not.
+
+### `createSafeParser`
+
+```ts
+import { createSafeParser, P } from 'ts-pattern';
+
+const parseBlogPost = createSafeParser({
+  type: 'blogpost',
+  title: P.string,
+  description: P.string,
+});
+
+const res = parseBlogPost(value);
+// res:
+//   { success: true, data: { ... } }
+//   OR
+//   { success: false, error: { path: ['title'], expected: P.string, actual: 42 } }
+```
+
+`createSafeParser` returns a function validating data against a pattern. It either returns `{ success: true; data }` when the value matches, or `{ success: false; error }` with a `PatternMismatch` describing the first failing property.
+
+The `PatternMismatch` object contains:
+
+- `path`: an array indicating the property path of the mismatch (e.g. `['user', 'address', 'street']`).
+- `expected`: the pattern fragment expected at that path.
+- `actual`: the actual value found in the input.
+- `type`: either `'missing-property'` when a required property is absent or `'invalid-value'` when a value doesn’t conform to the pattern.
 
 ## Patterns
 

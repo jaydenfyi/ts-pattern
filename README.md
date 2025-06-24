@@ -640,6 +640,20 @@ returns the result of the pattern-matching expression, or **throws** if no patte
 function run(): TOutput;
 ```
 
+### `.is`
+
+```ts
+if (match(value).is(P.string)) {
+  // `value` is inferred as string
+}
+```
+
+#### Signature
+
+```ts
+function is<const P extends Pattern<TInput>>(pattern: P): this is Pattern.infer<P>;
+```
+
 ### `isMatching`
 
 ```ts

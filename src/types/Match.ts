@@ -1,5 +1,6 @@
 import type * as symbols from '../internals/symbols';
 import type { Pattern, MatchedValue } from './Pattern';
+import type * as P from '../patterns';
 import type { InvertPatternForExclude, InvertPattern } from './InvertPattern';
 import type { DeepExclude } from './DeepExclude';
 import type { Union, GuardValue, IsNever } from './helpers';
@@ -203,6 +204,12 @@ export type Match<
    * ⚠️ calling this function is unsafe, and may throw if no pattern matches your input.
    */
   run(): PickReturnValue<o, inferredOutput>;
+
+  /**
+   * `.is()` checks if the input matches a pattern. It can be chained after
+   * `match(value)` to perform type narrowing.
+   */
+  is<const p extends Pattern<i>>(pattern: p): this is MatchedValue<i, P.infer<p>>;
 
   /**
    * `.returnType<T>()` Lets you specify the return type for all of your branches.

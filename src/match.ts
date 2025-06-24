@@ -121,6 +121,10 @@ class MatchExpression<input, output> {
     return this.exhaustive();
   }
 
+  is<p extends Pattern<input>>(pattern: p): boolean {
+    return matchPattern(pattern, this.input, () => {});
+  }
+
   returnType() {
     return this;
   }

@@ -5,6 +5,7 @@ import type { DeepExclude } from './DeepExclude';
 import type { Union, GuardValue, IsNever, WithDefault } from './helpers';
 import type { FindSelected } from './FindSelected';
 import type { PatternConstraint } from '../is-matching';
+import type { P } from '..';
 
 export type PickReturnValue<a, b> = a extends symbols.unset ? b : a;
 
@@ -211,8 +212,12 @@ export type Match<
    * `.is(pattern)` allows narrowing the current match expression with the given pattern.
    * It acts as a type guard on the match expression instance.
    */
-  is<const p extends PatternConstraint<i>>(pattern: p): this is Match<
-    i & WithDefault<p.narrow<i, p>, p.infer<p>>,
+  is<const p extends PatternConstraint<i>>(
+    pattern: p
+  ): this is Match<
+    // narrow the *input* type down to exactly what P.infer<p> extracts,
+    // rather than i & WithDefault<…>
+    P.infer<p>,
     o,
     handledCases,
     inferredOutput

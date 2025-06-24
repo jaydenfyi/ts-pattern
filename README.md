@@ -643,10 +643,17 @@ function run(): TOutput;
 ### `.is`
 
 ```ts
+import { match, P } from 'ts-pattern';
+
+const value: unknown = 'hello';
+
 if (match(value).is(P.string)) {
-  // `value` is inferred as string
+  // value: string
 }
 ```
+
+`.is` is a chainable type guard method available on the object returned by `match(value)`.
+It returns `true` when the provided pattern matches the input and narrows the type of the input accordingly.
 
 #### Signature
 

@@ -121,7 +121,7 @@ class MatchExpression<input, output> {
     return this.exhaustive();
   }
 
-  is<p extends Pattern<input>>(pattern: p): boolean {
+  is(pattern: Pattern<input>): boolean {
     return matchPattern(pattern, this.input, () => {});
   }
 

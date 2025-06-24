@@ -643,23 +643,39 @@ function run(): TOutput;
 ### `.is`
 
 ```ts
-import { match, P } from 'ts-pattern';
-
-const value: unknown = 'hello';
-
-if (match(value).is(P.string)) {
-  // value: string
+if (match(value).is(pattern))  {
+  ...
 }
 ```
 
 `.is` is a chainable type guard method available on the object returned by `match(value)`.
-It returns `true` when the provided pattern matches the input and narrows the type of the input accordingly.
+It checks if a pattern matches the input value and narrows its type accordingly.
+
+```ts
+import { match, P } from 'ts-pattern';
+
+const blogPostPattern = {
+  type: 'blogpost',
+  title: P.string,
+  description: P.string,
+} as const;
+
+if (match(value).is(blogPostPattern)) {
+  // value: { type: 'blogpost', title: string, description: string }
+}
+```
 
 #### Signature
 
 ```ts
 function is<const P extends Pattern<TInput>>(pattern: P): this is Pattern.infer<P>;
 ```
+
+#### Arguments
+
+- `pattern: Pattern<TInput>`
+  - **Required**
+  - The pattern the input should match.
 
 ### `isMatching`
 

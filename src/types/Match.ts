@@ -2,8 +2,10 @@ import type * as symbols from '../internals/symbols';
 import type { Pattern, MatchedValue } from './Pattern';
 import type { InvertPatternForExclude, InvertPattern } from './InvertPattern';
 import type { DeepExclude } from './DeepExclude';
-import type { Union, GuardValue, IsNever } from './helpers';
+import type { Union, GuardValue, IsNever, WithDefault } from './helpers';
 import type { FindSelected } from './FindSelected';
+import type { PatternConstraint } from '../is-matching';
+import type { P } from '..';
 
 export type PickReturnValue<a, b> = a extends symbols.unset ? b : a;
 
@@ -25,6 +27,8 @@ export type Match<
   handledCases extends any[] = [],
   inferredOutput = never
 > = {
+  /** The input value being matched. */
+  readonly value: i;
   /**
    * `.with(pattern, handler)` Registers a pattern and an handler function that
    * will be called if the pattern matches the input value.
@@ -203,6 +207,21 @@ export type Match<
    * ⚠️ calling this function is unsafe, and may throw if no pattern matches your input.
    */
   run(): PickReturnValue<o, inferredOutput>;
+
+  /**
+   * `.is(pattern)` allows narrowing the current match expression with the given pattern.
+   * It acts as a type guard on the match expression instance.
+   */
+  is<const p extends PatternConstraint<i>>(
+    pattern: p
+  ): this is Match<
+    // narrow the *input* type down to exactly what P.infer<p> extracts,
+    // rather than i & WithDefault<…>
+    P.infer<p>,
+    o,
+    handledCases,
+    inferredOutput
+  >;
 
   /**
    * `.returnType<T>()` Lets you specify the return type for all of your branches.

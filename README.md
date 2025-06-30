@@ -99,6 +99,7 @@ Type-Level TypeScript takes you on a deep dive into the most advanced features o
   - [`.with`](#with)
   - [`.when`](#when)
   - [`.returnType`](#returntype)
+  - [`.is`](#is)
   - [`.exhaustive`](#exhaustive)
   - [`.otherwise`](#otherwise)
   - [`isMatching`](#ismatching)
@@ -535,6 +536,35 @@ function returnType<TOutputOverride>(): Match<TInput, TOutputOverride>;
 
 - `TOutputOverride`
   - The type that your `match` expression will return. All branches must return values assignable to it.
+
+### `.is`
+
+```ts
+const m = match(value);
+
+if (m.is(pattern)) {
+  // m.value is narrowed inside this block
+}
+
+const result = m.is(pattern, (v) => v); // returns handler output
+```
+
+`.is` acts as a type guard on the match expression. When the pattern matches, it
+narrows `m.value`. If a handler function is provided, its return value is
+returned when the pattern matches.
+
+#### Signature
+
+```ts
+function is<P extends PatternConstraint<TInput>>(pattern: P): this is Match<
+  TInput & WithDefault<P.narrow<TInput, P>, P.infer<P>>,
+  TOutput
+>;
+function is<P extends PatternConstraint<TInput>, R>(
+  pattern: P,
+  handler: (value: TInput & WithDefault<P.narrow<TInput, P>, P.infer<P>>) => R
+): R;
+```
 
 ### `.exhaustive`
 

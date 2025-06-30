@@ -3,6 +3,9 @@ import { Match } from './types/Match';
 import * as symbols from './internals/symbols';
 import { matchPattern } from './internals/helpers';
 import { NonExhaustiveError } from './errors';
+import { isMatching, PatternConstraint } from './is-matching';
+import * as P from './patterns';
+import { WithDefault } from './types/helpers';
 
 type MatchState<output> =
   | { matched: true; value: output }
@@ -46,6 +49,38 @@ export function match<const input, output = symbols.unset>(
  */
 class MatchExpression<input, output> {
   constructor(private input: input, private state: MatchState<output>) {}
+
+  get value(): input {
+    return this.input;
+  }
+
+  is<const pat extends PatternConstraint<input>>(pattern: pat): this is MatchExpression<
+    input & WithDefault<P.narrow<input, pat>, P.infer<pat>>,
+    output
+  >;
+  is<const pat extends PatternConstraint<input>, r>(
+    pattern: pat,
+    handler: (
+      value: input & WithDefault<P.narrow<input, pat>, P.infer<pat>>
+    ) => r
+  ): r;
+  is<const pat extends PatternConstraint<input>, r>(
+    pattern: pat,
+    handler?: (
+      value: input & WithDefault<P.narrow<input, pat>, P.infer<pat>>
+    ) => r
+  ): boolean | r {
+    const matches = isMatching(pattern, this.input);
+    if (handler) {
+      return matches
+        ? handler(
+            this.input as input &
+              WithDefault<P.narrow<input, pat>, P.infer<pat>>
+          )
+        : (undefined as unknown as r);
+    }
+    return matches;
+  }
 
   with(...args: any[]): MatchExpression<input, output> {
     if (this.state.matched) return this;

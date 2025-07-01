@@ -721,6 +721,25 @@ if (is(value, { foo: P.number })) {
 }
 ```
 
+### `isStrict`
+
+```ts
+if (isStrict(value, pattern)) {
+  ...
+}
+```
+
+`isStrict` is similar to [`is`](#is) but only accepts patterns that are assignable to the value's type at compile time.
+
+```ts
+import { isStrict, P } from 'ts-pattern';
+
+const value = { foo: 2 } as const;
+if (isStrict(value, { foo: P.number })) {
+  // value: { foo: 2 }
+}
+```
+
 ## Patterns
 
 A pattern is a description of the expected shape of your input value.

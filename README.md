@@ -702,6 +702,25 @@ export function isMatching<p extends Pattern<any>>(
   - if a value is given as second argument, `isMatching` will return a boolean telling us whether the pattern matches the value or not.
   - if we only give the pattern to the function, `isMatching` will return another **type guard function** taking a value and returning a boolean which tells us whether the pattern matches the value or not.
 
+### `is`
+
+```ts
+if (is(value, pattern)) {
+  ...
+}
+```
+
+`is` works like [`isMatching`](#ismatching) but takes the value first and the pattern second.
+
+```ts
+import { is, P } from 'ts-pattern';
+
+const value = { foo: 2 };
+if (is(value, { foo: P.number })) {
+  // value: { foo: number }
+}
+```
+
 ## Patterns
 
 A pattern is a description of the expected shape of your input value.

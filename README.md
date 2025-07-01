@@ -740,6 +740,26 @@ if (isStrict(value, { foo: P.number })) {
 }
 ```
 
+### `isStricter`
+
+```ts
+if (isStricter(value, pattern)) {
+  ...
+}
+```
+
+`isStricter` behaves like [`isStrict`](#isstrict) but will raise a type error if
+your pattern explicitly contains `undefined` for a property that is not
+optional in the value's type.
+
+```ts
+import { isStricter } from 'ts-pattern';
+
+declare const value: { foo: number };
+// @ts-expect-error - foo cannot be explicitly undefined
+isStricter(value, { foo: undefined });
+```
+
 ## Patterns
 
 A pattern is a description of the expected shape of your input value.

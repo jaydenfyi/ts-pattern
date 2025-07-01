@@ -1,5 +1,5 @@
 import * as Pattern from './patterns';
-import { match } from './match';
+import { matchPattern } from './internals/helpers';
 
 /**
  * `isStrict` takes a value and a pattern and checks if the value strictly matches the pattern.
@@ -9,5 +9,5 @@ export function isStrict<const T, const P extends Pattern.Pattern<T>>(
   value: T,
   pattern: P
 ): value is Pattern.infer<P> {
-  return match(value).with(pattern, () => true).otherwise(() => false);
+  return matchPattern(pattern, value, () => {});
 }
